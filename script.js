@@ -1,0 +1,314 @@
+// Declare global variables for overall state.
+// These need to be accessible to functions called directly from HTML (like recordScore)
+// and for the save function.
+let currentEnd = 0;
+let currentArrow = 0;
+let endScores = [];
+let scoresPerEnd = 3; // Default, will change based on distance
+let totalEnds = 10; // Default, will change based on distance
+let totalCumulativeScore = 0; // Global variable to store the final cumulative score
+
+let goodShots = 0;
+let badShots = 0;
+
+// Function to show a specific page and hide others
+function showPage(pageToShow) {
+    const allPages = document.querySelectorAll('.page');
+    allPages.forEach(page => page.classList.remove('active'));
+    pageToShow.classList.add('active');
+}
+
+// Function to create/reset the scoreboard HTML table
+function createScoreboard(arrowsPerEnd, numEnds) {
+    scoresPerEnd = arrowsPerEnd;
+    totalEnds = numEnds;
+    endScores = Array(totalEnds).fill(0).map(() => Array(scoresPerEnd).fill(null)); // Initialize with nulls
+    totalCumulativeScore = 0; // Reset cumulative score for new practice
+
+    const scoreSheetTable = document.getElementById('scoreSheetTable');
+    scoreSheetTable.innerHTML = ''; // Clear previous table content
+
+    let headerRow = '<tr><th>End</th>';
+    for (let i = 1; i <= scoresPerEnd; i++) {
+        headerRow += `<th>A${i}</th>`;
+    }
+    headerRow += '<th>End Total</th><th>Cumulative</th></tr>';
+    scoreSheetTable.innerHTML += headerRow;
+
+    for (let i = 0; i < totalEnds; i++) {
+        let row = `<tr id="endRow-${i}"><td>${i + 1}</td>`;
+        for (let j = 0; j < scoresPerEnd; j++) {
+            row += `<td id="scoreCell-${i}-${j}">-</td>`;
+        }
+        row += `<td id="endTotal-${i}">0</td><td id="cumulativeTotal-${i}">0</td></tr>`;
+        scoreSheetTable.innerHTML += row;
+    }
+
+    currentEnd = 0;
+    currentArrow = 0;
+    updateScoreboardUI(); // Initial update of UI after board creation
+    updateCurrentShotCounter(); // Initial update of shot counter
+}
+
+// Function to update the scoreboard display in the UI
+function updateScoreboardUI() {
+    let currentRunningCumulative = 0; // Local variable to calculate running cumulative for display
+    for (let i = 0; i < totalEnds; i++) {
+        let endTotal = 0;
+        for (let j = 0; j < scoresPerEnd; j++) {
+            const score = endScores[i][j];
+            const cell = document.getElementById(`scoreCell-${i}-${j}`);
+            if (cell) {
+                // Display the score as-is, whether it's a number or a string like 'X'
+                cell.textContent = score !== null ? score : '-';
+
+                // Check if the score is a number before adding to the total
+                if (typeof score === 'number') {
+                    endTotal += score;
+                } else if (score === 'X' || score === '10*') {
+                    // Special scores still count as 10 points for the total
+                    endTotal += 10;
+                }
+            }
+        }
+        const endTotalCell = document.getElementById(`endTotal-${i}`);
+        if (endTotalCell) {
+            endTotalCell.textContent = endTotal;
+        }
+
+        currentRunningCumulative += endTotal;
+        const cumulativeCell = document.getElementById(`cumulativeTotal-${i}`);
+        if (cumulativeCell) {
+            cumulativeCell.textContent = currentRunningCumulative;
+        }
+    }
+    totalCumulativeScore = currentRunningCumulative; // Update the global total for saving
+
+    // Highlight current end
+    document.querySelectorAll('#scoreSheetTable tr').forEach(row => row.style.backgroundColor = ''); // Clear all highlights
+    const currentRow = document.getElementById(`endRow-${currentEnd}`);
+    if (currentRow) {
+        currentRow.style.backgroundColor = '#e0f7fa'; // Light blue for current end
+    }
+}
+
+// Function to record a score when a score button is clicked
+window.recordScore = function(score) {
+    if (currentEnd >= totalEnds) {
+        // We've completed all ends, just return.
+        return;
+    }
+    if (currentArrow >= scoresPerEnd) {
+        // End is full, just return.
+        return;
+    }
+
+    // Check if the score is a number or a string (X, 10*)
+    let scoreValue = 0;
+    if (typeof score === 'string') {
+        // Special scores like 'X' and '10*' still count as 10 points
+        scoreValue = 10;
+        // Store the original string for display
+        endScores[currentEnd][currentArrow] = score;
+    } else {
+        scoreValue = score;
+        endScores[currentEnd][currentArrow] = score;
+    }
+
+    currentArrow++;
+    updateScoreboardUI(); // Update scoreboard immediately after recording score
+    updateCurrentShotCounter(); // Update shot counter immediately
+
+    // Auto-advance to next end if current end is full
+    if (currentArrow >= scoresPerEnd && currentEnd < totalEnds - 1) {
+        currentEnd++;
+        currentArrow = 0;
+        updateCurrentShotCounter(); // Update counter for new end
+        updateScoreboardUI(); // Update UI to highlight new end
+    } else if (currentArrow >= scoresPerEnd && currentEnd === totalEnds - 1) {
+        updateCurrentShotCounter(); // Update counter to show completion
+    }
+};
+
+
+// Function to update the current shot counter display
+function updateCurrentShotCounter() {
+    const currentShotCounterSpan = document.getElementById('currentShotCounter');
+    if (currentShotCounterSpan) {
+        if (currentEnd >= totalEnds) {
+            currentShotCounterSpan.textContent = `Practice Completed!`;
+        } else {
+            currentShotCounterSpan.textContent = `End: ${currentEnd + 1}, Arrow: ${currentArrow + 1}`;
+        }
+    }
+}
+
+// Function to save the practice record (placeholder for Firebase)
+async function savePracticeRecord() {
+    const archerName = document.getElementById('archerName').value;
+    const practiceDate = document.getElementById('practiceDate').value;
+    const practiceDistance = document.getElementById('practiceDistance').value;
+    const notes = document.getElementById('practiceNotes').value;
+    const equipment = document.getElementById('equipmentUsed').value;
+
+    const record = {
+        archerName: archerName,
+        date: practiceDate,
+        distance: practiceDistance,
+        scores: endScores,
+        totalScore: totalCumulativeScore, // Use the global totalCumulativeScore
+        goodShots: goodShots,
+        badShots: badShots,
+        notes: notes,
+        equipment: equipment,
+        timestamp: new Date().toISOString()
+    };
+
+    console.log("Saving record (placeholder):", record);
+    alert('Data saved to console (Firebase integration coming soon!)');
+
+    // Reset forms and state after saving
+    document.getElementById('archerName').value = '';
+    document.getElementById('practiceDate').value = '';
+    document.getElementById('practiceDistance').value = '';
+    document.getElementById('practiceNotes').value = '';
+    document.getElementById('equipmentUsed').value = '';
+    goodShots = 0;
+    badShots = 0;
+    document.getElementById('goodShotCount').textContent = 0; // Directly update span
+    document.getElementById('badShotCount').textContent = 0;   // Directly update span
+    createScoreboard(3, 10); // Reset scoreboard to default for new practice
+    showPage(archerInfoPage); // Go back to the initial page
+}
+
+
+// --- All DOM-related interactions go inside DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Get references to all pages
+    const archerInfoPage = document.getElementById('archerInfoPage');
+    const scoreSheetPage = document.getElementById('scoreSheetPage');
+    const shotCounterPage = document.getElementById('shotCounterPage');
+    const notesPage = document.getElementById('notesPage');
+
+    // Get references to buttons on Archer Info Page
+    const startScoringBtn = document.getElementById('startScoring');
+    const goToShotCounterBtn = document.getElementById('goToShotCounter');
+    const goToNotesBtn = document.getElementById('goToNotes');
+
+    // Get references to navigation buttons from Score Sheet Page
+    const navToArcherInfo1 = document.getElementById('navToArcherInfo1');
+    const navToShotCounterFromScore = document.getElementById('navToShotCounterFromScore'); // Corrected ID
+    const navToNotesFromScore = document.getElementById('navToNotesFromScore');
+
+    // Get references to navigation buttons from Shot Counter Page
+    const navToArcherInfo2 = document.getElementById('navToArcherInfo2');
+    const navToScoreSheetFromShot = document.getElementById('navToScoreSheetFromShot');
+    const navToNotesFromShot = document.getElementById('navToNotesFromShot');
+
+    // Get references to navigation buttons from Notes Page
+    const navToArcherInfo3 = document.getElementById('navToArcherInfo3');
+    const navToScoreSheetFromNotes = document.getElementById('navToScoreSheetFromNotes');
+    const navToShotCounterFromNotes = document.getElementById('navToShotCounterFromNotes');
+
+    // Get references to Shot Counter buttons
+    const goodShotBtn = document.getElementById('goodShotBtn');
+    const badShotBtn = document.getElementById('badShotBtn');
+    const goodShotCount = document.getElementById('goodShotCount');
+    const badShotCount = document.getElementById('badShotCount');
+
+    // Get references to Save buttons
+    const endPracticeBtn = document.getElementById('endPractice');
+    const saveRecordBtn = document.getElementById('saveRecord');
+    const saveRecordNotesBtn = document.getElementById('saveRecordNotes');
+
+
+    // --- Initial Page Load ---
+    showPage(archerInfoPage); // Start on the archer info page
+
+    // --- Event Listeners for Archer Info Page Buttons ---
+    startScoringBtn.addEventListener('click', () => {
+        const archerName = document.getElementById('archerName').value;
+        const practiceDate = document.getElementById('practiceDate').value;
+        const practiceDistanceValue = document.getElementById('practiceDistance').value;
+
+        // Basic validation: Check if all fields are filled.
+        if (!archerName || !practiceDate || !practiceDistanceValue) {
+            alert('Please fill in all practice details (Name, Date, and Distance)!');
+            return; // Exit the function if validation fails.
+        }
+        
+        // Parse the distance value as an integer.
+        const practiceDistance = parseInt(practiceDistanceValue, 10);
+
+        // Logic to determine arrows per end based on distance.
+        if (practiceDistance <= 30) {
+            createScoreboard(3, 10); // Indoor: 3 arrows per end, 10 ends
+        } else {
+            createScoreboard(6, 6); // Outdoor: 6 arrows per end, 6 ends
+        }
+        
+        showPage(scoreSheetPage);
+    });
+
+    goToShotCounterBtn.addEventListener('click', () => {
+        showPage(shotCounterPage);
+    });
+
+    goToNotesBtn.addEventListener('click', () => {
+        showPage(notesPage);
+    });
+
+    // --- Event Listeners for Score Sheet Page Buttons ---
+    if (navToArcherInfo1) {
+        navToArcherInfo1.addEventListener('click', () => showPage(archerInfoPage));
+    }
+    if (navToShotCounterFromScore) {
+        navToShotCounterFromScore.addEventListener('click', () => showPage(shotCounterPage));
+    }
+    if (navToNotesFromScore) {
+        navToNotesFromScore.addEventListener('click', () => showPage(notesPage));
+    }
+    if (endPracticeBtn) {
+        endPracticeBtn.addEventListener('click', savePracticeRecord);
+    }
+
+    // --- Event Listeners for Shot Counter Page Buttons ---
+    if (goodShotBtn) {
+        goodShotBtn.addEventListener('click', () => {
+            goodShots++;
+            goodShotCount.textContent = goodShots;
+        });
+    }
+    if (badShotBtn) {
+        badShotBtn.addEventListener('click', () => {
+            badShots++;
+            badShotCount.textContent = badShots;
+        });
+    }
+    if (navToArcherInfo2) {
+        navToArcherInfo2.addEventListener('click', () => showPage(archerInfoPage));
+    }
+    if (navToScoreSheetFromShot) {
+        navToScoreSheetFromShot.addEventListener('click', () => showPage(scoreSheetPage));
+    }
+    if (navToNotesFromShot) {
+        navToNotesFromShot.addEventListener('click', () => showPage(notesPage));
+    }
+    if (saveRecordBtn) {
+        saveRecordBtn.addEventListener('click', savePracticeRecord);
+    }
+
+    // --- Event Listeners for Notes Page Buttons ---
+    if (navToArcherInfo3) {
+        navToArcherInfo3.addEventListener('click', () => showPage(archerInfoPage));
+    }
+    if (navToScoreSheetFromNotes) {
+        navToScoreSheetFromNotes.addEventListener('click', () => showPage(scoreSheetPage));
+    }
+    if (navToShotCounterFromNotes) {
+        navToShotCounterFromNotes.addEventListener('click', () => showPage(shotCounterPage));
+    }
+    if (saveRecordNotesBtn) {
+        saveRecordNotesBtn.addEventListener('click', savePracticeRecord);
+    }
+}); // End of DOMContentLoaded
