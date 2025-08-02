@@ -143,7 +143,7 @@ function updateCurrentShotCounter() {
     }
 }
 
-// Function to save the practice record (placeholder for Firebase)
+// Function to save the practice record
 async function savePracticeRecord() {
     const archerName = document.getElementById('archerName').value;
     const practiceDate = document.getElementById('practiceDate').value;
@@ -156,7 +156,7 @@ async function savePracticeRecord() {
         date: practiceDate,
         distance: practiceDistance,
         scores: endScores,
-        totalScore: totalCumulativeScore, // Use the global totalCumulativeScore
+        totalScore: totalCumulativeScore,
         goodShots: goodShots,
         badShots: badShots,
         notes: notes,
@@ -164,8 +164,13 @@ async function savePracticeRecord() {
         timestamp: new Date().toISOString()
     };
 
-    console.log("Saving record (placeholder):", record);
-    alert('Data saved to console (Firebase integration coming soon!)');
+    // Retrieve existing records from local storage or initialize a new array
+    const existingRecords = JSON.parse(localStorage.getItem('archeryRecords')) || [];
+    existingRecords.push(record);
+    localStorage.setItem('archeryRecords', JSON.stringify(existingRecords));
+
+    console.log("Saving record:", record);
+    alert('Practice saved successfully!');
 
     // Reset forms and state after saving
     document.getElementById('archerName').value = '';
@@ -175,12 +180,76 @@ async function savePracticeRecord() {
     document.getElementById('equipmentUsed').value = '';
     goodShots = 0;
     badShots = 0;
-    document.getElementById('goodShotCount').textContent = 0; // Directly update span
-    document.getElementById('badShotCount').textContent = 0;   // Directly update span
-    createScoreboard(3, 10); // Reset scoreboard to default for new practice
-    showPage(archerInfoPage); // Go back to the initial page
+    document.getElementById('goodShotCount').textContent = 0;
+    document.getElementById('badShotCount').textContent = 0;
+    createScoreboard(3, 10);
+    showPage(archerInfoPage);
 }
 
+// Helper function to format the scores for display
+function formatScores(scoresArray) {
+    return scoresArray.map(end => {
+        const endScores = end.map(score => score !== null ? score : '-');
+        return `[${endScores.join(', ')}]`;
+    }).join(' ');
+}
+
+// Function to display the practice history from local storage
+function displayPracticeHistory() {
+    const historyListDiv = document.getElementById('historyList');
+    historyListDiv.innerHTML = ''; // Clear previous content
+
+    const records = JSON.parse(localStorage.getItem('archeryRecords')) || [];
+
+    if (records.length === 0) {
+        historyListDiv.innerHTML = '<p>No practice history found.</p>';
+        return;
+    }
+
+    // Create a table to display the history
+    const historyTable = document.createElement('table');
+    historyTable.innerHTML = `
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Distance</th>
+                <th>Total Score</th>
+                <th>Scores per End</th>
+                <th>Notes</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    `;
+    const tbody = historyTable.querySelector('tbody');
+
+    records.forEach((record, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${record.date}</td>
+            <td>${record.distance}m</td>
+            <td>${record.totalScore}</td>
+            <td>${formatScores(record.scores)}</td>
+            <td>${record.notes || 'No notes'}</td>
+            <td><button onclick="deleteRecord(${index})">Delete</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    historyListDiv.appendChild(historyTable);
+}
+
+// Function to delete a specific record by its index
+window.deleteRecord = function(index) {
+    if (confirm('Are you sure you want to delete this practice record? This action cannot be undone.')) {
+        const records = JSON.parse(localStorage.getItem('archeryRecords')) || [];
+        records.splice(index, 1); // Remove the record at the specified index
+        localStorage.setItem('archeryRecords', JSON.stringify(records));
+        displayPracticeHistory(); // Refresh the list
+        alert('Record deleted successfully!');
+    }
+};
 
 // --- All DOM-related interactions go inside DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -189,11 +258,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreSheetPage = document.getElementById('scoreSheetPage');
     const shotCounterPage = document.getElementById('shotCounterPage');
     const notesPage = document.getElementById('notesPage');
+    const historyPage = document.getElementById('historyPage');
 
     // Get references to buttons on Archer Info Page
     const startScoringBtn = document.getElementById('startScoring');
     const goToShotCounterBtn = document.getElementById('goToShotCounter');
     const goToNotesBtn = document.getElementById('goToNotes');
+    const goToHistoryBtn = document.getElementById('goToHistory');
 
     // Get references to navigation buttons from Score Sheet Page
     const navToArcherInfo1 = document.getElementById('navToArcherInfo1');
@@ -209,6 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const navToArcherInfo3 = document.getElementById('navToArcherInfo3');
     const navToScoreSheetFromNotes = document.getElementById('navToScoreSheetFromNotes');
     const navToShotCounterFromNotes = document.getElementById('navToShotCounterFromNotes');
+
+    // Get references to navigation buttons from History Page
+    const navToArcherInfo4 = document.getElementById('navToArcherInfo4');
+
 
     // Get references to Shot Counter buttons
     const goodShotBtn = document.getElementById('goodShotBtn');
@@ -256,6 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     goToNotesBtn.addEventListener('click', () => {
         showPage(notesPage);
+    });
+
+    goToHistoryBtn.addEventListener('click', () => {
+        showPage(historyPage);
+        displayPracticeHistory();
     });
 
     // --- Event Listeners for Score Sheet Page Buttons ---
@@ -310,5 +390,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (saveRecordNotesBtn) {
         saveRecordNotesBtn.addEventListener('click', savePracticeRecord);
+    }
+
+    // --- Event Listeners for History Page Buttons ---
+    if (navToArcherInfo4) {
+        navToArcherInfo4.addEventListener('click', () => showPage(archerInfoPage));
     }
 }); // End of DOMContentLoaded
