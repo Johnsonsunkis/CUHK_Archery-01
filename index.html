@@ -8,40 +8,43 @@
 </head>
 <body>
     <div id="archerInfoPage" class="page active">
-        <h2>Practice Details</h2>
-        <label for="archerName">Archer Name:</label>
-        <input type="text" id="archerName" placeholder="Your Name" required>
-        <br><br>
+        <h2>Archery Practice Details</h2>
+        <form id="archerForm">
+            <label for="archerName">Archer Name:</label>
+            <input type="text" id="archerName" placeholder="Enter name">
 
-        <label for="practiceDate">Date:</label>
-        <input type="date" id="practiceDate" required>
-        <br><br>
+            <label for="practiceDate">Date:</label>
+            <input type="date" id="practiceDate">
 
-        <label for="practiceDistance">Distance (meters):</label>
-        <select id="practiceDistance" required>
-            <option value="">--Select Distance--</option>
-            <option value="18">18 meters (Indoor)</option>
-            <option value="25">25 meters (Indoor)</option>
-            <option value="30">30 meters</option>
-            <option value="50">50 meters</option>
-            <option value="60">60 meters</option>
-            <option value="70">70 meters (Olympic)</option>
-        </select>
-        <br><br>
-
+            <label for="practiceDistance">Distance (meters):</label>
+            <input type="text" id="practiceDistance" list="distanceOptions" placeholder="e.g., 18 or 70">
+            <datalist id="distanceOptions">
+                <option value="18"></option>
+                <option value="25"></option>
+                <option value="30"></option>
+                <option value="50"></option>
+                <option value="60"></option>
+                <option value="70"></option>
+                <option value="90"></option>
+            </datalist>
+        </form>
         <button id="startScoring">Start Scoring</button>
         <button id="goToShotCounter">Go to Shot Counter</button>
         <button id="goToNotes">Go to Notes</button>
         <button id="goToHistory">View Practice History</button>
-    </div> <div id="scoreSheetPage" class="page">
-        <button id="navToArcherInfo1">Back to Details</button>
-        <button id="navToShotCounterFromScore">Go to Shot Counter</button> <button id="navToNotesFromScore">Go to Notes</button> <h3>Scoring Sheet - Current Shot: <span id="currentShotCounter">End: 1, Arrow: 1</span></h3>
+        <button id="goToCountdown">Go to Countdown</button>
+    </div>
 
+    <div id="scoreSheetPage" class="page">
+        <button id="navToArcherInfo1">Back to Details</button>
+        <button id="navToShotCounterFromScore">Shot Counter</button>
+        <button id="navToNotesFromScore">Notes</button>
+        <h2>Score Sheet</h2>
+        <p id="currentShotCounter">End: 1, Arrow: 1</p>
         <table id="scoreSheetTable">
             </table>
-
-        <div style="text-align: center; margin-top: 20px;">
-            <h4>Enter Score:</h4>
+        <div class="score-button-container">
+            <button class="score-button" onclick="recordScore('X')">X</button>
             <button class="score-button" onclick="recordScore(10)">10</button>
             <button class="score-button" onclick="recordScore(9)">9</button>
             <button class="score-button" onclick="recordScore(8)">8</button>
@@ -53,40 +56,58 @@
             <button class="score-button" onclick="recordScore(2)">2</button>
             <button class="score-button" onclick="recordScore(1)">1</button>
             <button class="score-button" onclick="recordScore(0)">M</button>
-            <button class="score-button" onclick="recordScore('X')" style="background-color: orange;">X</button>
-            <button class="score-button" onclick="recordScore('10*')" style="background-color: green;">10*</button>
         </div>
-        <br>
-        <button id="endPractice" style="background-color: #dc3545;">End Current Practice & Save</button>
-    </div> <div id="shotCounterPage" class="page">
+        <button id="endPractice">End Practice</button>
+    </div>
+
+    <div id="shotCounterPage" class="page">
         <button id="navToArcherInfo2">Back to Details</button>
-        <button id="navToScoreSheetFromShot">Go to Scoring</button> <button id="navToNotesFromShot">Go to Notes</button> <h2>Shot Counter</h2>
-        <div style="text-align: center; margin-top: 30px;">
-            <button id="goodShotBtn" class="shot-counter-button" style="background-color: #28a745;">Good Shot</button>
-            <p style="font-size: 2em;">Count: <span id="goodShotCount">0</span></p>
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-            <button id="badShotBtn" class="shot-counter-button" style="background-color: #dc3545;">Bad Shot</button>
-            <p style="font-size: 2em;">Count: <span id="badShotCount">0</span></p>
-        </div>
-        <br>
-        <button id="saveRecord" style="background-color: #6c757d;">Save Notes/Shots (Not part of score)</button>
-    </div> <div id="notesPage" class="page">
+        <button id="navToScoreSheetFromShot">Score Sheet</button>
+        <button id="navToNotesFromShot">Notes</button>
+        <h2>Shot Counter</h2>
+        <button id="goodShotBtn" class="shot-counter-button">Good Shot (<span id="goodShotCount">0</span>)</button>
+        <button id="badShotBtn" class="shot-counter-button">Bad Shot (<span id="badShotCount">0</span>)</button>
+        <button id="saveRecord">Save Record</button>
+    </div>
+
+    <div id="notesPage" class="page">
         <button id="navToArcherInfo3">Back to Details</button>
-        <button id="navToScoreSheetFromNotes">Go to Scoring</button> <button id="navToShotCounterFromNotes">Go to Shot Counter</button> <h2>Notes & Equipment</h2>
+        <button id="navToScoreSheetFromNotes">Score Sheet</button>
+        <button id="navToShotCounterFromNotes">Shot Counter</button>
+        <h2>Notes</h2>
+        <textarea id="practiceNotes" placeholder="Enter notes here..." rows="10"></textarea>
         <label for="equipmentUsed">Equipment Used:</label>
-        <textarea id="equipmentUsed" rows="3" placeholder="e.g., Bow type, Sight, Stabilizer, Arrows"></textarea>
-        <br><br>
-        <label for="practiceNotes">Practice Notes:</label>
-        <textarea id="practiceNotes" rows="6" placeholder="Any specific observations, focus points, feelings, etc."></textarea>
-        <br><br>
-        <button id="saveRecordNotes" style="background-color: #6c757d;">Save Notes/Shots (Not part of score)</button>
-    </div> <div id="historyPage" class="page">
+        <input type="text" id="equipmentUsed" placeholder="e.g., Recurve, Easton X10s">
+        <button id="saveRecordNotes">Save Record</button>
+    </div>
+
+    <div id="historyPage" class="page">
         <button id="navToArcherInfo4">Back to Details</button>
         <h2>Practice History</h2>
         <div id="historyList">
             <p>Your practice history will appear here.</p>
         </div>
-    </div> <script src="script.js"></script>
+    </div>
+
+    <div id="countdownPage" class="page">
+        <button id="navToArcherInfo5">Back to Details</button>
+        <h2>Shot Timer</h2>
+        <div id="timerDisplay" class="timer-display">03:00</div>
+        <button id="startTimerBtn">Start</button>
+        <button id="pauseTimerBtn">Pause</button>
+        <button id="resetTimerBtn">Reset</button>
+        <div style="margin-top: 20px;">
+            <p>Set a custom time (minutes:seconds):</p>
+            <input type="number" id="minutesInput" placeholder="min" min="0" value="3">
+            <input type="number" id="secondsInput" placeholder="sec" min="0" max="59" value="0">
+            <button id="setTimerBtn">Set Time</button>
+        </div>
+        <div style="margin-top: 20px;">
+            <label for="secondsOnlyCheckbox">Display in seconds only</label>
+            <input type="checkbox" id="secondsOnlyCheckbox">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

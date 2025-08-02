@@ -1,11 +1,14 @@
+/* General body and page styling */
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+    margin: 0;
+    padding: 20px;
     background-color: #f4f4f4;
+    box-sizing: border-box;
 }
 
 .page {
-    display: none; /* Hide all pages by default */
+    display: none;
     border: 1px solid #ddd;
     padding: 20px;
     background-color: white;
@@ -13,24 +16,28 @@ body {
     max-width: 600px;
     margin: 20px auto;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-sizing: border-box;
 }
 
 .page.active {
-    display: block; /* Show the active page */
+    display: block;
 }
 
+/* Form element styling */
 input[type="text"],
 input[type="date"],
 input[type="number"],
-textarea {
-    width: calc(100% - 22px); /* Adjust for padding and border */
+textarea,
+select {
+    width: 100%;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box; /* Include padding/border in width calculation */
+    box-sizing: border-box;
 }
 
+/* Button styling */
 button {
     background-color: #4CAF50;
     color: white;
@@ -40,48 +47,170 @@ button {
     cursor: pointer;
     font-size: 16px;
     margin-right: 10px;
-    margin-bottom: 10px; /* Added margin-bottom for better spacing on buttons too */
+    margin-bottom: 10px;
+    box-sizing: border-box;
 }
 
 button:hover {
     background-color: #45a049;
 }
 
-/* Scoreboard styling (initial) */
-/* CORRECTED: Changed #scoreSheet to #scoreSheetTable */
+/* Score Sheet Table Styling */
 #scoreSheetTable {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
 
-/* CORRECTED: Changed #scoreSheet to #scoreSheetTable */
-#scoreSheetTable th, #scoreSheetTable td {
+#scoreSheetTable th,
+#scoreSheetTable td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
 }
 
-/* CORRECTED: Changed #scoreSheet to #scoreSheetTable */
 #scoreSheetTable th {
     background-color: #f2f2f2;
 }
 
+/* Score button layout */
+.score-button-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+}
+
 .score-button {
-    width: 60px; /* Make buttons square */
+    width: 60px;
     height: 60px;
     font-size: 20px;
     margin: 5px;
-    background-color: #007bff;
+    flex-grow: 1;
+    min-width: 50px;
 }
 
-.score-button:hover {
-    background-color: #0056b3;
+/* Score button colors */
+.score-button[onclick="recordScore('X')"],
+.score-button[onclick="recordScore('10*')"],
+.score-button[onclick="recordScore(10)"],
+.score-button[onclick="recordScore(9)"] {
+    background-color: #FFC107; /* Yellow */
+    color: black;
+}
+.score-button[onclick="recordScore(8)"],
+.score-button[onclick="recordScore(7)"] {
+    background-color: #DC3545; /* Red */
+}
+.score-button[onclick="recordScore(6)"],
+.score-button[onclick="recordScore(5)"] {
+    background-color: #007BFF; /* Blue */
+}
+.score-button[onclick="recordScore(4)"],
+.score-button[onclick="recordScore(3)"] {
+    background-color: #343A40; /* Black */
+    color: white;
+}
+.score-button[onclick="recordScore(2)"],
+.score-button[onclick="recordScore(1)"] {
+    background-color: #F8F9FA; /* White */
+    color: black;
+}
+.score-button[onclick="recordScore(0)"] {
+    background-color: #6C757D; /* Grey for Miss */
 }
 
+/* Shot Counter Buttons */
 .shot-counter-button {
     width: 120px;
     height: 80px;
     font-size: 24px;
     margin: 10px;
+}
+
+/* Dynamic colors for scoreboard cells */
+.score-cell-10, .score-cell-9, .score-cell-X {
+    background-color: #FFC107; /* Yellow */
+    color: black;
+}
+.score-cell-8, .score-cell-7 {
+    background-color: #DC3545; /* Red */
+    color: white;
+}
+.score-cell-6, .score-cell-5 {
+    background-color: #007BFF; /* Blue */
+    color: white;
+}
+.score-cell-4, .score-cell-3 {
+    background-color: #343A40; /* Black */
+    color: white;
+}
+.score-cell-2, .score-cell-1 {
+    background-color: #F8F9FA; /* White */
+    color: black;
+}
+.score-cell-0, .score-cell-M {
+    background-color: #6C757D; /* Grey for Miss */
+    color: white;
+}
+
+/* Timer Display Styling */
+#timerDisplay {
+    font-size: 4em;
+    font-weight: bold;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    transition: background-color 0.5s ease;
+    color: black; /* Set a default visible color */
+    background-color: #f2f2f2; /* Add a default background */
+}
+
+.timer-running {
+    background-color: #28a745; /* Green */
+    color: white;
+}
+
+.timer-warning {
+    background-color: #ffc107; /* Yellow */
+    color: black;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 600px) {
+    .page {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 14px;
+        margin-right: 5px;
+    }
+
+    .score-button-container {
+        justify-content: space-between;
+    }
+
+    .score-button {
+        width: 45px;
+        height: 45px;
+        font-size: 16px;
+        margin: 3px;
+        flex-basis: auto;
+        flex-grow: 0;
+    }
+
+    .shot-counter-button {
+        width: 100px;
+        height: 60px;
+        font-size: 20px;
+    }
+
+    #timerDisplay {
+        font-size: 3em;
+        margin: 10px;
+    }
 }

@@ -1,6 +1,4 @@
 // Declare global variables for overall state.
-// These need to be accessible to functions called directly from HTML (like recordScore)
-// and for the save function.
 let currentEnd = 0;
 let currentArrow = 0;
 let endScores = [];
@@ -10,6 +8,11 @@ let totalCumulativeScore = 0; // Global variable to store the final cumulative s
 
 let goodShots = 0;
 let badShots = 0;
+
+// Global variables for the countdown timer
+let timer; // Holds the setInterval object
+let timeLeft = 180; // Default time in seconds (3 minutes)
+let isPaused = true;
 
 // Function to show a specific page and hide others
 function showPage(pageToShow) {
@@ -59,14 +62,37 @@ function updateScoreboardUI() {
             const score = endScores[i][j];
             const cell = document.getElementById(`scoreCell-${i}-${j}`);
             if (cell) {
+                // Clear any existing color classes
+                cell.className = '';
+
                 // Display the score as-is, whether it's a number or a string like 'X'
-                cell.textContent = score !== null ? score : '-';
+                if (score !== null) {
+                    cell.textContent = score;
+
+                    // Apply color class based on score
+                    if (score === 'X' || score === '10*') {
+                        cell.classList.add('score-cell-X');
+                    } else if (score >= 9) {
+                        cell.classList.add('score-cell-10');
+                    } else if (score >= 7) {
+                        cell.classList.add('score-cell-8');
+                    } else if (score >= 5) {
+                        cell.classList.add('score-cell-6');
+                    } else if (score >= 3) {
+                        cell.classList.add('score-cell-4');
+                    } else if (score >= 1) {
+                        cell.classList.add('score-cell-2');
+                    } else { // Score is 0 or 'M'
+                        cell.classList.add('score-cell-0');
+                    }
+                } else {
+                    cell.textContent = '-';
+                }
 
                 // Check if the score is a number before adding to the total
                 if (typeof score === 'number') {
                     endTotal += score;
                 } else if (score === 'X' || score === '10*') {
-                    // Special scores still count as 10 points for the total
                     endTotal += 10;
                 }
             }
@@ -82,13 +108,13 @@ function updateScoreboardUI() {
             cumulativeCell.textContent = currentRunningCumulative;
         }
     }
-    totalCumulativeScore = currentRunningCumulative; // Update the global total for saving
+    totalCumulativeScore = currentRunningCumulative;
 
     // Highlight current end
-    document.querySelectorAll('#scoreSheetTable tr').forEach(row => row.style.backgroundColor = ''); // Clear all highlights
+    document.querySelectorAll('#scoreSheetTable tr').forEach(row => row.style.backgroundColor = '');
     const currentRow = document.getElementById(`endRow-${currentEnd}`);
     if (currentRow) {
-        currentRow.style.backgroundColor = '#e0f7fa'; // Light blue for current end
+        currentRow.style.backgroundColor = '#e0f7fa';
     }
 }
 
@@ -251,6 +277,66 @@ window.deleteRecord = function(index) {
     }
 };
 
+// --- Countdown timer functions ---
+function updateTimerDisplay() {
+    const timerDisplay = document.getElementById('timerDisplay');
+    const secondsOnlyCheckbox = document.getElementById('secondsOnlyCheckbox');
+
+    // Remove previous color classes
+    timerDisplay.classList.remove('timer-running', 'timer-warning');
+
+    // Add new color class based on time left
+    if (timeLeft <= 30) {
+        timerDisplay.classList.add('timer-warning');
+    } else {
+        timerDisplay.classList.add('timer-running');
+    }
+    
+    // Update display text based on checkbox
+    if (secondsOnlyCheckbox && secondsOnlyCheckbox.checked) {
+        timerDisplay.textContent = timeLeft;
+    } else {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+}
+
+function startTimer() {
+    if (isPaused && timeLeft > 0) {
+        isPaused = false;
+        timer = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timer);
+                isPaused = true;
+                alert("Time's up!");
+            }
+        }, 1000);
+    }
+}
+
+function pauseTimer() {
+    if (!isPaused) {
+        isPaused = true;
+        clearInterval(timer);
+    }
+}
+
+function resetTimer() {
+    pauseTimer();
+    const minutes = parseInt(minutesInput.value) || 0;
+    const seconds = parseInt(secondsInput.value) || 0;
+    const newTime = minutes * 60 + seconds;
+    
+    // Set the new time. If the new time is invalid, default to 3 minutes.
+    timeLeft = newTime > 0 ? newTime : 180;
+    
+    updateTimerDisplay();
+}
+
 // --- All DOM-related interactions go inside DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to all pages
@@ -259,16 +345,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const shotCounterPage = document.getElementById('shotCounterPage');
     const notesPage = document.getElementById('notesPage');
     const historyPage = document.getElementById('historyPage');
+    const countdownPage = document.getElementById('countdownPage');
 
     // Get references to buttons on Archer Info Page
     const startScoringBtn = document.getElementById('startScoring');
     const goToShotCounterBtn = document.getElementById('goToShotCounter');
     const goToNotesBtn = document.getElementById('goToNotes');
     const goToHistoryBtn = document.getElementById('goToHistory');
+    const goToCountdownBtn = document.getElementById('goToCountdown');
 
     // Get references to navigation buttons from Score Sheet Page
     const navToArcherInfo1 = document.getElementById('navToArcherInfo1');
-    const navToShotCounterFromScore = document.getElementById('navToShotCounterFromScore'); // Corrected ID
+    const navToShotCounterFromScore = document.getElementById('navToShotCounterFromScore');
     const navToNotesFromScore = document.getElementById('navToNotesFromScore');
 
     // Get references to navigation buttons from Shot Counter Page
@@ -284,6 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get references to navigation buttons from History Page
     const navToArcherInfo4 = document.getElementById('navToArcherInfo4');
 
+    // Get references to navigation buttons from Countdown Page
+    const navToArcherInfo5 = document.getElementById('navToArcherInfo5');
 
     // Get references to Shot Counter buttons
     const goodShotBtn = document.getElementById('goodShotBtn');
@@ -295,6 +385,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const endPracticeBtn = document.getElementById('endPractice');
     const saveRecordBtn = document.getElementById('saveRecord');
     const saveRecordNotesBtn = document.getElementById('saveRecordNotes');
+
+    // Get references to countdown timer buttons and inputs
+    const timerDisplay = document.getElementById('timerDisplay');
+    const startTimerBtn = document.getElementById('startTimerBtn');
+    const pauseTimerBtn = document.getElementById('pauseTimerBtn');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    const minutesInput = document.getElementById('minutesInput');
+    const secondsInput = document.getElementById('secondsInput');
+    const setTimerBtn = document.getElementById('setTimerBtn');
+    const secondsOnlyCheckbox = document.getElementById('secondsOnlyCheckbox');
 
 
     // --- Initial Page Load ---
@@ -336,6 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
     goToHistoryBtn.addEventListener('click', () => {
         showPage(historyPage);
         displayPracticeHistory();
+    });
+
+    goToCountdownBtn.addEventListener('click', () => {
+        showPage(countdownPage);
+        updateTimerDisplay();
     });
 
     // --- Event Listeners for Score Sheet Page Buttons ---
@@ -395,5 +500,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners for History Page Buttons ---
     if (navToArcherInfo4) {
         navToArcherInfo4.addEventListener('click', () => showPage(archerInfoPage));
+    }
+
+    // --- Event Listeners for Countdown Page Buttons ---
+    if (navToArcherInfo5) {
+        navToArcherInfo5.addEventListener('click', () => showPage(archerInfoPage));
+    }
+    if (startTimerBtn) {
+        startTimerBtn.addEventListener('click', startTimer);
+    }
+    if (pauseTimerBtn) {
+        pauseTimerBtn.addEventListener('click', pauseTimer);
+    }
+    if (resetTimerBtn) {
+        resetTimerBtn.addEventListener('click', resetTimer);
+    }
+    if (setTimerBtn) {
+        setTimerBtn.addEventListener('click', resetTimer);
+    }
+    // Add event listener to update display when checkbox is toggled
+    if (secondsOnlyCheckbox) {
+        secondsOnlyCheckbox.addEventListener('change', updateTimerDisplay);
     }
 }); // End of DOMContentLoaded
