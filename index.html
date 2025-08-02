@@ -65,8 +65,12 @@
         <button id="navToScoreSheetFromShot">Score Sheet</button>
         <button id="navToNotesFromShot">Notes</button>
         <h2>Shot Counter</h2>
-        <button id="goodShotBtn" class="shot-counter-button">Good Shot (<span id="goodShotCount">0</span>)</button>
-        <button id="badShotBtn" class="shot-counter-button">Bad Shot (<span id="badShotCount">0</span>)</button>
+        <div class="shot-counter-container">
+            <button id="goodShotBtn" class="shot-counter-button">Good Shot</button>
+            <span id="goodShotCount" class="shot-count">0</span>
+            <button id="badShotBtn" class="shot-counter-button bad-shot-button">Bad Shot</button>
+            <span id="badShotCount" class="shot-count">0</span>
+        </div>
         <button id="saveRecord">Save Record</button>
     </div>
 

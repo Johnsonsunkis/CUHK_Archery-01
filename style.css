@@ -120,12 +120,34 @@ button:hover {
     background-color: #6C757D; /* Grey for Miss */
 }
 
-/* Shot Counter Buttons */
+/* Shot Counter Buttons and Display */
+.shot-counter-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
 .shot-counter-button {
     width: 120px;
     height: 80px;
     font-size: 24px;
-    margin: 10px;
+    margin: 0;
+}
+
+.bad-shot-button {
+    background-color: #DC3545; /* Red */
+}
+
+.shot-count {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 50px;
+    text-align: center;
 }
 
 /* Dynamic colors for scoreboard cells */
@@ -212,5 +234,10 @@ button:hover {
     #timerDisplay {
         font-size: 3em;
         margin: 10px;
+    }
+
+    .shot-counter-container {
+        flex-wrap: wrap;
+        gap: 10px;
     }
 }
